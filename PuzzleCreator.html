@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        main {
+            max-width: 800px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        #canvas {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            display: block;
+            max-width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #piecesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Puzzle Creator</h1>
+    </header>
+    <main>
+        <p>Upload an image to create a puzzle!</p>
+        <div class="input-group">
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div class="input-group">
+            <label for="rows">Rows: </label>
+            <input type="number" id="rows" value="3" min="1" max="10">
+            <label for="cols">Columns: </label>
+            <input type="number" id="cols" value="3" min="1" max="10">
+        </div>
+        <button id="createPuzzle">Create Puzzle</button>
+        <div id="puzzlePieces" class="hidden">
+            <h2>Puzzle Pieces</h2>
+            <div id="piecesContainer"></div>
+        </div>
+        <canvas id="canvas" class="hidden"></canvas>
+    </main>
+    <footer>
+        <p>&copy; 2025 Puzzle Creator. All Rights Reserved.</p>
+    </footer>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const createPuzzleButton = document.getElementById('createPuzzle');
+        const rowsInput = document.getElementById('rows');
+        const colsInput = document.getElementById('cols');
+        const canvas = document.getElementById('canvas');
+        const piecesContainer = document.getElementById('piecesContainer');
+        const puzzlePieces = document.getElementById('puzzlePieces');
+        const ctx = canvas.getContext('2d');
+        
+        let image = new Image();
+
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    image.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        createPuzzleButton.addEventListener('click', () => {
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+
+            if (!image.src) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0, image.width, image.height);
+
+            const pieceWidth = canvas.width / cols;
+            const pieceHeight = canvas.height / rows;
+
+            piecesContainer.innerHTML = '';
+            puzzlePieces.classList.remove('hidden');
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const pieceCanvas = document.createElement('canvas');
+                    pieceCanvas.width = pieceWidth;
+                    pieceCanvas.height = pieceHeight;
+                    const pieceCtx = pieceCanvas.getContext('2d');
+
+                    pieceCtx.drawImage(
+                        canvas,
+                        col * pieceWidth,
+                        row * pieceHeight,
+                        pieceWidth,
+                        pieceHeight,
+                        0,
+                        0,
+                        pieceWidth,
+                        pieceHeight
+                    );
+
+                    const link = document.createElement('a');
+                    link.download = `puzzle-piece-${row}-${col}.png`;
+                    link.href = pieceCanvas.toDataURL();
+                    link.textContent = `Piece (${row + 1}, ${col + 1})`;
+                    link.appendChild(pieceCanvas);
+
+                    piecesContainer.appendChild(link);
+                    piecesContainer.appendChild(document.createElement('br'));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
